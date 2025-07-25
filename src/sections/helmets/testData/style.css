@@ -1,0 +1,22 @@
+.ge-ss {
+    font-family: 'GE SS';
+}
+.p-taq{
+    font-weight: 700 !important;
+    text-align: center;
+    border: 1px solid #D7DAE0;
+    text-transform: uppercase;
+}
+.text-left{
+  
+    text-align: left;
+    padding-left: 15px ;
+    
+}
+.text-right{
+    text-align: right;
+}
+.text-center{
+    text-align: center;
+    
+}

@@ -1,0 +1,34 @@
+/* scrollbar */
+@import 'simplebar-react/dist/simplebar.min.css';
+@font-face {
+  font-family: 'GE-SS-Two-Medium';
+  src:
+    url('../fonts/GE_SS_Two_Medium.otf'),
+    url('../fonts/GE_SS_Two_Medium.otf') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GE-SS-Two-Medium';
+  src: local('Calibri');
+  font-weight: normal;
+  font-style: normal;
+  unicode-range: U+30-39;
+}
+@font-face {
+  font-family: 'GE-SS-Two-Light';
+  src:
+    url('../fonts/GE_SS_Two_Light.otf'),
+    url('../fonts/GE_SS_Two_Light.otf') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GE-SS-Two-Light';
+  src: local('Calibri');
+  font-weight: normal;
+  font-style: normal;
+  unicode-range: U+30-39;
+}

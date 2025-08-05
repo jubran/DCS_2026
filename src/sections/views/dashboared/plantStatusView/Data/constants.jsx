@@ -17,12 +17,12 @@ export const TABS = [
     icon: <Iconify width={24} icon="solar:user-id-bold" />,
   },
   {
-    value: "tanks_c",
+    value: "crudeTank",
     label: "خزانات الكرود",
     icon: <Iconify width={24} icon="solar:user-id-bold" />,
   },
   {
-    value: "tanks_d",
+    value: "dieselTank",
     label: "خزانات الديزل",
     icon: <Iconify width={24} icon="solar:user-id-bold" />,
   },

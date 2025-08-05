@@ -1,5 +1,7 @@
 // ----------------------------------------------------------------------
 
+import { fontFamily } from "@mui/system";
+
 export function remToPx(value) {
   return Math.round(parseFloat(value) * 16);
 }
@@ -98,6 +100,13 @@ export const typography = {
     lineHeight: 1.5,
     fontSize: pxToRem(12),
     textTransform: "uppercase",
+  },
+  uppercase:{
+ fontWeight: 700,
+    lineHeight: 1.5,
+    fontSize: pxToRem(12),
+    textTransform: "uppercase",
+    fontFamily:"Public Sans, sans-serif"
   },
   button: {
     fontWeight: 700,

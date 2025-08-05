@@ -6,6 +6,7 @@ import Card from "@mui/material/Card";
 import { CardHeader } from "@mui/material";
 import ShowDataGrid from "./ShowDataGrid";
 import DataGridToolbar from "./DataGridToolbar";
+import { Box } from "@mui/system";
 
 export const fetcher = url => fetch(url).then(res => res.json());
 
@@ -26,10 +27,15 @@ export default function EventsViewPage() {
     }
   );
 
+ 
+
+
+
   // 4) واجهة المستخدم
   return (
     <Card sx={{ p: 2 }}>
-      <CardHeader title="ملخص هذا اليوم" />
+    <CardHeader title="ملخص هذا اليوم" />
+      
 
       {/* Toolbar يسمح للمستخدم بتغيير التاريخ */}
       <DataGridToolbar

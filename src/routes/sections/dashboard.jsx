@@ -5,6 +5,7 @@ import { AuthGuard } from "src/auth/guard";
 import DashboardLayout from "src/layouts/dashboard";
 
 import { LoadingScreen } from "src/components/loading-screen";
+import UnitManagerForm from "src/sections/views/Units/UnitManagerForm";
 
 // ----------------------------------------------------------------------
 
@@ -23,8 +24,8 @@ const PageNightReport = lazy(
 const PagePrivateDiscution = lazy(
   () => import("src/pages/dashboard/helmets/private_discutionP"),
 );
-const PageUnits = lazy(() => import("src/pages/dashboard/helmets/unitsP"));
-
+// const PageUnits = lazy(() => import("src/pages/dashboard/helmets/unitsP"));
+const PageUnits = lazy(() => import("src/sections/views/Units/UnitManagerForm"));
 const PageManageMyGroup = lazy(
   () => import("src/pages/dashboard/CPanel/myGroupP"),
 );

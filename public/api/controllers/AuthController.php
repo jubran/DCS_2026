@@ -24,6 +24,7 @@ class AuthController {
                     respondError(401, 'Invalid credentials');
                 }
                 $token = generateJWT($user['id']);
+                
                 echo json_encode([
                     'user' => [
                         'username' => $user['user_name'],

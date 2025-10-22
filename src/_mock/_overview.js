@@ -135,7 +135,10 @@ export const _locations = {
     units:["GT16","GT19","GT20","GT21","GT22","GT23","GT24","GT25","GT26","GT27","GT28","GT29","GT30"],
     dieselTank:  [ "TANK#6", "TANK#7", "TANK#8", "TANK#9", "TANK#11"],
     crudeTank: [ "TANK#10", "TANK#12", "TANK#13","TANK#14", "TANK#15", "TANK#16","TANK#17", "TANK#18"],
+    cotp: [], 
     fts_c: ["SKID#1 SP#1","SKID#1 SP#2","SKID#1 SP#3","SKID#1 SP#4","SKID#1 SP#5","SKID#2 SP#1","SKID#2 SP#2","SKID#2 SP#3","SKID#2 SP#4"],
+    fts_1: ["SKID#1 SP#1","SKID#1 SP#2","SKID#1 SP#3","SKID#1 SP#4","SKID#1 SP#5"],
+    fts_2: ["SKID#2 SP#1","SKID#2 SP#2","SKID#2 SP#3","SKID#2 SP#4"],
     fts_d:["SP#1","SP#2","SP#3","SP#4","SP#5","SP#6"],
     fus: ["FUS#1","FUS#2","FUS#3","FUS#4","FUS#5","FUS#6","FUS#7","FUS#8","FUS#9(A)","FUS#9(B)","FUS#10(A)","FUS#10(B)"]
   }

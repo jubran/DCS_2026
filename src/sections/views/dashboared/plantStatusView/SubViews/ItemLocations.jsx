@@ -1,211 +1,234 @@
 import { Icon } from "@iconify/react";
 import { Box, Avatar, Typography, Stack, Tooltip } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { secondaryFont } from "src/theme/typography";
+import OperationDialogForm from "../../Dialogs/OperationDialogForm";
 
-export function ItemLocations({ item, sx, units = [], fus = [], cotp = [], ft6 = [], dieselTank = [] , crudeTank = [], ...other }) {
-  const [getData, setData] = useState(null);
-  const [hover, setHover] = useState(false);
 
-  const handleMouseEnter = () => setHover(true);
-  const handleMouseLeave = () => setHover(false);
-
-useEffect(() => {
-  if (!item) return;
-
-  const trimmedItem = item.trim();
-
-  let matchedUnit = null;
-
-  if (trimmedItem.startsWith("FUS#")) {
-    const itemNumber = trimmedItem.replace(/[^0-9]/g, "");
-    matchedUnit = fus.find(
-      (u) =>
-        u.location === `FUS#${itemNumber}` ||
-        u.location === `FUS#${itemNumber}(A)` ||
-        u.location === `FUS#${itemNumber}(B)`
-    );
-  } else if (trimmedItem.startsWith("SP#")) {
-    const itemNumber = trimmedItem.replace(/[^0-9]/g, "");
-    matchedUnit = ft6.find((u) => {
-      const ftMatch = u.location.match(/SP#(\d+)/);
-      return ftMatch && ftMatch[1] === itemNumber;
-    });
-  } else if (trimmedItem.startsWith("TANK#")) {
-    matchedUnit =
-      dieselTank.find((u) => u.location.trim() === trimmedItem) ||
-      crudeTank.find((u) => u.location.trim() === trimmedItem);
-  } else {
-    // fallback for general units or cotp
-    matchedUnit =
-      units.find((u) => u.location === trimmedItem) ||
-      cotp.find((u) => u.location === trimmedItem);
-  }
-
-  setData(matchedUnit || null);
-}, [item, units, fus, cotp, ft6, dieselTank, crudeTank]);
-
-  const getShadowColor = (status) => {
-    switch (status) {
-      case "In Service":
-        return "rgba(0, 255, 0, 0.5)";
-      case "Stand By":
-        return "rgba(255, 165, 0, 0.5)";
-      case "Shutdown":
-        return "rgba(255, 0, 0, 0.5)";
-      default:
-        return "rgba(128, 128, 128, 0.3)";
+const getStatusColor = ( status ) =>
+{
+    switch ( status ) {
+        case "In Service":
+            return "linear-gradient(135deg, #10b981 0%, #059669 25%, #047857 75%, #065f46 100%)";
+        case "Stand By":
+            return "linear-gradient(135deg, #f59e0b 0%, #d97706 25%, #b45309 75%, #92400e 100%)";
+        default:
+            return "linear-gradient(135deg, #ef4444 0%, #dc2626 25%, #b91c1c 75%, #991b1b 100%)";
     }
-  };
+};
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "In Service":
-        return "material-symbols:check-circle";
-      case "Stand By":
-        return "material-symbols:pause-circle";
-      default:
-        return "mdi:help-circle";
+const findMatchedUnit = ( trimmedItem, allLocationData ) =>
+{
+    const {
+        units,
+        fus,
+        ft6,
+        dieselTank,
+        crudeTank,
+        cotp_skid1,
+        cotp_skid2,
+        cotp,
+    } = allLocationData;
+    let cotpSearchArray = cotp;
+
+    if ( !trimmedItem ) return null;
+
+    const lowerTrimmedItem = trimmedItem.toLowerCase();
+    if ( lowerTrimmedItem.includes( "skid#1" ) ) {
+        cotpSearchArray = cotp_skid1;
+    } else if ( lowerTrimmedItem.includes( "skid#2" ) ) {
+        cotpSearchArray = cotp_skid2;
     }
-  };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "In Service":
-        return "green";
-      case "Stand By":
-        return "orange";
-      default:
-        return "red";
+    if ( trimmedItem.startsWith( "FUS#" ) ) {
+        const itemNumber = trimmedItem.replace( /[^0-9]/g, "" );
+        return fus.find(
+            ( u ) =>
+                u.location === `FUS#${ itemNumber }` ||
+                u.location === `FUS#${ itemNumber }(A)` ||
+                u.location === `FUS#${ itemNumber }(B)`
+        );
     }
-  };
 
-  return (
-    <Box
-      sx={[
+    if ( trimmedItem.startsWith( "SP#" ) ) {
+        const itemNumber = trimmedItem.replace( /[^0-9]/g, "" );
+        return ft6.find( ( u ) =>
         {
-          gap: 2,
-          display: "flex",
-          alignItems: "center",
-          padding: "6px",
-          alignItems: "stretch",
-          border: hover
-            ? `2px dashed ${getData?.status1 === "In Service" ? "green" : "orange"}`
-            : "2px solid transparent",
-          borderRadius: 1,
-          transition: "border 0.3s ease",
-          ...sx,
+            const ftMatch = u.location.match( /SP#(\d+)/ );
+            return ftMatch && ftMatch[ 1 ] === itemNumber;
+        } );
+    }
+
+    if ( trimmedItem.startsWith( "TANK#" ) ) {
+        return (
+            dieselTank.find( ( u ) => u.location && u.location.trim() === trimmedItem ) ||
+            crudeTank.find( ( u ) => u.location && u.location.trim() === trimmedItem )
+        );
+    }
+
+    return (
+        units.find( ( u ) => u.location === trimmedItem ) ||
+        cotpSearchArray.find( ( u ) => u.location === trimmedItem )
+    );
+};
+
+const useMatchedUnit = ( item, allLocationData ) =>
+{
+    return useMemo( () =>
+    {
+        const trimmedItem = item ? item.trim() : "";
+        return findMatchedUnit( trimmedItem, allLocationData );
+    }, [ item, allLocationData ] );
+};
+
+const useStatusTooltip = ( matchedUnit ) =>
+{
+    const tooltipBgColor = matchedUnit
+        ? getStatusColor( matchedUnit.status1 )
+            .split( "," )[ 3 ]
+            .replace( " 100%)", "" )
+            .trim()
+        : "#424242";
+
+    return {
+        title: (
+            <div style={ { padding: "4px 8px", textAlign: "center" } }>
+                <Typography
+                    variant="caption"
+                    fontWeight={ 700 }
+                    sx={ { color: "#ffffff" } }
+                >
+                    { matchedUnit?.status1 || "No Data" }
+                </Typography>
+            </div>
+        ),
+        sx: {
+            [ `& .MuiTooltip-tooltip` ]: {
+                backgroundColor: tooltipBgColor,
+                borderRadius: 1,
+                boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+                padding: "0px",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+            },
+            [ `& .MuiTooltip-arrow` ]: {
+                color: tooltipBgColor,
+            },
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      {...other}
-    >
-      <Avatar
-        variant="rounded"
-        sx={{
-          p: 1,
-          width: 48,
-          height: 48,
-          bgcolor: getStatusColor(getData?.status1),
-          color: "white",
-        }}
-      >
-        <Icon
-          icon={getStatusIcon(getData?.status1)}
-          color="white"
-          width="28"
-          height="28"
-        />
-      </Avatar>
+    };
+};
 
-      <div>
-        <Box
-          sx={{
-            mb: 1,
-            gap: 1,
-            display: "flex",
-            alignItems: "center",
-          }}
+const renderUnitContent = ( item, matchedUnit ) => (
+    <>
+        <Typography
+            fontSize={ 14 }
+            fontWeight={ 700 }
+            noWrap
+            fontFamily={ secondaryFont }
+            sx={ {
+                letterSpacing: "0.8px",
+                textShadow: "0 1px 3px rgba(0, 0, 0, 0.5)",
+                lineHeight: 1,
+                userSelect: "none",
+                position: "relative",
+                zIndex: 11,
+                transition: "letter-spacing 0.3s ease",
+            } }
         >
-          <Box
-            sx={{
-              display: "flex",
-              px: 1,
-              boxShadow: `0 0 90px 30px ${getShadowColor(getData?.status1)}`,
-              borderRadius: "4px",
-            }}
-          >
-            <Typography variant="subtitle2" noWrap fontFamily={secondaryFont}>
-              {item}
-            </Typography>
-          </Box>
-
-          <Tooltip
-            title={
-              getData?.status1 === "In Service"
-                ? "إيقاف الوحدة"
-                : "تشغيل أو تحويل الوحدة"
-            }
-            PopperProps={{
-              modifiers: [
-                {
-                  name: "offset",
-                  options: {
-                    offset: [0, 10],
-                  },
-                },
-              ],
-            }}
-            sx={{
-              "& .MuiTooltip-tooltip": {
-                backgroundColor: "orange",
-                color: "white",
-                borderRadius: "4px",
-                padding: "8px",
-              },
-            }}
-          >
-            <Typography sx={{ display: "flex" }}>
-              <Icon
+            { item }
+        </Typography>
+        { matchedUnit && (
+            <Icon
                 icon={
-                  getData?.status1 === "In Service"
-                    ? "ph:plugs-connected-fill"
-                    : "fluent:plug-connected-add-20-filled"
+                    matchedUnit.status1 === "In Service"
+                        ? "mdi:check-circle"
+                        : matchedUnit.status1 === "Stand By"
+                            ? "mdi:alert-circle"
+                            : "mdi:close-circle"
                 }
-                fontSize="30px"
-                color={getData?.status1 === "In Service" ? "orange" : "green"}
-              />
-            </Typography>
-          </Tooltip>
-        </Box>
-
-        <Stack
-          divider={
-            <Box
-              sx={{
-                width: 4,
-                height: 4,
-                borderRadius: "50%",
-                bgcolor: "text.disabled",
-              }}
+                style={ {
+                    fontSize: 16,
+                    marginTop: 4,
+                    opacity: 0.8,
+                    position: "absolute",
+                    bottom: 3,
+                    right: 4,
+                    //   zIndex: 11,
+                } }
             />
-          }
-          sx={{
-            gap: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            typography: "caption",
-          }}
+        ) }
+    </>
+);
+
+export function ItemLocations ( { item, allLocationData, sx, ...other } )
+{
+    const matchedUnit = useMatchedUnit( item, allLocationData );
+    const dialogData = matchedUnit || { id: item, location: "No Data", status1: "No Data" };
+    const [ openDialog, setOpenDialog ] = useState( false );
+    const tooltipProps = useStatusTooltip( matchedUnit );
+    // const [ data, setData ] = useState( null );
+
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+    const AvatarComponent = useMemo(
+        () => (
+            <Avatar
+                variant="rounded"
+                onClick={ handleOpenDialog }
+                sx={ {
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    p: 1.6,
+                    width: "auto",
+                    height: 56,
+                    background: getStatusColor( matchedUnit?.status1 ),
+                    color: "white",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                    borderRadius: 1.5,
+                    cursor: "pointer",
+                    transition:
+                        "box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease",
+                    position: "relative",
+                    overflow: "hidden",
+                    opacity: matchedUnit ? 1 : 0.7,
+                    "&:hover": {
+                        boxShadow: "0 8px 20px rgba(0, 0, 0, 0.3)",
+                        transform: "scale(1.25)",
+                        zIndex: 10,
+                    },
+                    "&::before": {},
+                    "&:hover::before": {},
+                } }
+            >
+                { renderUnitContent( item, matchedUnit ) }
+            </Avatar>
+        ),
+        [ matchedUnit, item, tooltipProps ]
+    );
+
+    return (
+        <Box
+            sx={ {
+                gap: 2,
+                display: "flex",
+                alignItems: "center",
+                padding: "4px",
+                ...sx,
+            } }
+            { ...other }
         >
-          <Box sx={{ gap: 0.5, display: "flex", alignItems: "center" }}>
-            <Typography variant="uppercase" color="text.secondary">
-              {getData?.status1 || "No Data"}
-            </Typography>
-          </Box>
-        </Stack>
-      </div>
-    </Box>
-  );
+            { AvatarComponent }
+            <OperationDialogForm
+                data={ dialogData }
+                open={ openDialog } // <--- Controlled by state
+                onClose={ handleCloseDialog } // <--- Function to close the dialog
+            />
+        </Box>
+    );
 }

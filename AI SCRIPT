@@ -1,0 +1,114 @@
+انت مبرمج محترف react js
+قم بإنشاء واجهة مستخدم 
+استخدم @mui/material
+قم بتنسيق grid + cards بحيث تكون جميلة 
+فم بإنشاء 7 forms 
+tx = TextFiled
+txt = Text
+selectStstusMenu = select menu [ In Service , Stand By , Shutdown ]
+selectedRatching = select menu [Ratching In Service , Ratching Not Working ]
+trip = when selectStstusMenu select Shutdown display another select menu [ FO , MO , PO ,PE , OMC ]
+FO = when trip select menu select FO display another menu display select menu [ U1 , SF ,U2 , U3]
+TypeStatus =select menu  [ SERVICE , FEEDING , FILLING , RETUERN , MAINTENANCE ]
+ValveStatus = select menu[ OPEN , CLOSE ]
+TankTag = select menu [ GT#19 , GT#26 , FUS , 29 PPS , COTP, CRUDE GTS, DIESEL GTS ]
+date format YYYY-MM-DD
+Time format HH:mm
+
+StartUpForm 
+txt location
+tx EventDate 
+tx EventTime
+tx flameTime
+tx synckTime 
+tx EventText
+selectStstusMenu In Service selected and other disabled
+tx note 
+
+
+StopForm
+txt location
+tx EventDate 
+tx EventTime
+tx EventText
+selectedRatching
+selectStstusMenu  Stand By selected and other disabled
+tx note
+
+
+TripForm
+txt location
+tx EventDate 
+tx EventTime
+tx EventText
+selectedRatching
+selectStstusMenu  Shutdown selected and other disabled 
+
+ChangeForm 
+txt location
+tx EventDate 
+tx EventTime
+tx EventText
+selectStstusMenu  eneble all user can select anything
+if selectStstusMenu(Stanf By , Shutdown ) display selectedRatching
+
+TanksForm
+txt location
+tx EventDate 
+tx EventTime
+TypeStatus 
+ValveStatus
+TankTag 
+checkBox "Is there another operation"
+if selected display another TypeStatus & ValveStatus & TankTag  to make double operation
+txt OperationData display fuel summery of values depends on ValveStatus
+if TypeStatus FEEDING [ location & TypeStatus text(VALVE TO) & TankTag & ValveStatus ]
+if TypeStatus Retuern  [ location & TypeStatus text(VALVE FROM) & TankTag & ValveStatus ]
+ if TypeStatus FILLING  [ location & TypeStatus text(VALVE BY) & TankTag & ValveStatus ]
+if TypeStatus SERVICE [ location & TypeStatus text(VALVE TO) & TankTag & ValveStatus ]
+if TypeStatus MAINTENANCE  [ location text(UNDER MAINTENANCE) ]
+if location (TANK#6 OR TANK#7 OR TANK#8 ) AND TypeStatus(FILLING) TankTag(FUS)
+if location (TANK#6 OR TANK#7 OR TANK#8 ) AND TypeStatus(FEEDING,RETUERN) TankTag(29 PPS)
+if location (TANK#9 OR TANK#11 ) AND TypeStatus(FILLING) TankTag(29 PPS)
+if location (TANK#9 OR TANK#11 ) AND TypeStatus(RETUERN) TankTag(DIESEL GTS)
+if location (TANK#10 OR TANK#12, TANK#13 ) AND TypeStatus(FILLING) TankTag(FUS)
+if location (TANK#10 OR TANK#12, TANK#13 ) AND TypeStatus(FEEDING,RETUERN) TankTag(COTP)
+if location (TANK#14 OR TANK#15, TANK#16 ) AND TypeStatus(FILLING) TankTag(COTP)
+if location (TANK#14 OR TANK#15, TANK#16 ) AND TypeStatus(SERVICE) TankTag(GT#19)
+if location (TANK#14 OR TANK#15, TANK#16 ) AND TypeStatus(RETERUN) TankTag(GT#19 , CRUDE GTS)
+if location (TANK#16 OR TANK#17, TANK#18 ) AND TypeStatus(FILLING) TankTag(COTP)
+if location (TANK#16 OR TANK#17, TANK#18 ) AND TypeStatus(SERVICE) TankTag(GT#26)
+if location (TANK#16 OR TANK#17, TANK#18 ) AND TypeStatus(RETERUN) TankTag(GT#26 , CRUDE GTS)
+
+
+TransformerForm
+txt location
+tx EventDate 
+tx EventTime
+select menu [ TRIP , ENERGIZE , DE-ENERGIZE , DE-ENERGIZE & EARTH ]
+if selected menu above DE-ENERGIZE & EARTH display new tx(IER)
+checkbox (transformer link to unit status) if selectd display tx(EventText) and display 
+selectStstusMenu eneable all options and selectedRatching
+
+
+generalOperationForm
+txt location
+tx EventDate 
+tx EventTime
+tx EventText
+
+noteForm
+txt location
+tx EventDate 
+tx EventTime
+tx EventText
+
+BsdeForm
+txt location
+tx EventDate 
+tx EventTime
+tx EventText
+select menu (FSNL, LOAD)
+select menu (Shutdown, In Service)
+
+each form has abilty to insert new data or edit data

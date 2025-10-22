@@ -1,250 +1,120 @@
+
+// auth-provider.jsx localstorage management with token refresh
 import PropTypes from "prop-types";
 import { useMemo, useEffect, useReducer, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
-import axios from "axios"; // Import axios directly
-import { endpoints } from "src/utils/axios"; // Import your endpoints
-
+import axios from "axios";
 import { AuthContext } from "./auth-context";
-import { setSession, isValidToken } from "./utils";
+import { setSession, isValidToken ,refreshToken} from "./utils";
+
 // ----------------------------------------------------------------------
 
-const initialState = {
-  user: null,
-  loading: true,
-};
+const initialState = { user: null, loading: true };
+const STORAGE_KEY = "accessToken";
 
-const reducer = ( state, action ) =>
-{
-  switch ( action.type ) {
-    case "INITIAL":
-      return {
-        loading: false,
-        user: action.payload.user,
-      };
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "INITIAL": return { loading: false, user: action.payload.user };
     case "LOGIN":
-    case "REGISTER":
-      return {
-        ...state,
-        user: action.payload.user,
-      };
-    case "LOGOUT":
-      return {
-        ...state,
-        user: null,
-      };
-    default:
-      return state;
+    case "REGISTER": return { ...state, user: action.payload.user };
+    case "LOGOUT": return { ...state, user: null };
+    default: return state;
   }
 };
 
 // ----------------------------------------------------------------------
 
-const STORAGE_KEY = "accessToken";
-
-export function AuthProvider ( { children } )
-{
-  const [ state, dispatch ] = useReducer( reducer, initialState );
+export function AuthProvider({ children }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
   const navigate = useNavigate();
-
-  // Determine the API base URL based on the environment variable
   const apiBaseUrl = import.meta.env.VITE_HOST_API;
 
-  // Determine if we're using axios or jquery based on the API base URL
-  const isAxios = apiBaseUrl.includes( "vercel.app" ); // Adjust this condition as needed
-
-  const initialize = useCallback( async () =>
-  {
+  const initialize = useCallback(async () => {
     try {
-      const accessToken = sessionStorage.getItem( STORAGE_KEY );
+      const accessToken = localStorage.getItem(STORAGE_KEY);
 
-      if ( accessToken && isValidToken( accessToken ) ) {
-        setSession( accessToken );
+      if (accessToken && isValidToken(accessToken)) {
+        setSession(accessToken);
 
-        // Use axios for the "me" endpoint regardless of the API client
-        const response = await axios.get( `${ apiBaseUrl }/dashboard`, {
-          headers: {
-            Authorization: `Bearer ${ accessToken }`,
-          },
-        } );
+        const response = await axios.get(`${apiBaseUrl}/dashboard`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
 
         const { user } = response.data;
-
-        dispatch( {
-          type: "INITIAL",
-          payload: {
-            user: {
-              ...user,
-              accessToken,
-            },
-          },
-        } );
+        dispatch({ type: "INITIAL", payload: { user: { ...user, accessToken } } });
       } else {
-        setSession( null );
-        dispatch( {
-          type: "INITIAL",
-          payload: {
-            user: null,
-          },
-        } );
-        navigate( "/auth/jwt/login?returnTo=%2Fdashboard" );
-      }
-    } catch ( error ) {
-      console.error( error );
-      setSession( null );
-      dispatch( {
-        type: "INITIAL",
-        payload: {
-          user: null,
-        },
-      } );
-      navigate( "/auth/jwt/login?returnTo=%2Fdashboard" );
-    }
-  }, [ apiBaseUrl, navigate ] );
 
-  useEffect( () =>
-  {
-    initialize();
-  }, [ initialize ] );
+        accessToken = localStorage.getItem("accessToken");
+        if (accessToken && isValidToken(accessToken)) {
+          setSession(accessToken);
 
-  const login = useCallback(
-    async ( user_name, password ) =>
-    {
-      try {
-        const response = await await axios.post( "/api/api.php?action=fetchAuth", JSON.stringify( { user_name, password } ), {
-          headers: { "Content-Type": "application/json" }
-        } );
+          const response = await axios.get(`${apiBaseUrl}/dashboard`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
 
-        console.log( "Response data:", response.data );
-
-
-        const { accessToken, username } = response.data;
-
-        if ( !response.data.accessToken ) {
-          console.error( "Login error response:", response.data );
-          throw new Error( response.data.error || "No accessToken in response" );
+          const { user } = response.data;
+          dispatch({ type: "INITIAL", payload: { user: { ...user, accessToken } } });
+        } else {
+          throw new Error("No valid token");
         }
-
-        setSession( accessToken );
-
-        dispatch( {
-          type: "LOGIN",
-          payload: {
-            user: {
-              username,
-            },
-            accessToken,
-          },
-        } );
-      } catch ( error ) {
-        console.error( "Login failed:", error );
       }
-    },
-      [apiBaseUrl]
-  );
+    } catch (error) {
+      console.error("Session initialization failed:", error);
+      setSession(null);
+      dispatch({ type: "INITIAL", payload: { user: null } });
+      navigate("/auth/jwt/login?returnTo=%2Fdashboard");
+    }
+  }, [apiBaseUrl, navigate]);
 
+  useEffect(() => { initialize(); }, [initialize]);
 
-  // const login = useCallback(
-  //   async (email, password) => {
-  //     const data = {
-  //       email,
-  //       password,
-  //     };
+  const login = useCallback(async (user_name, password) => {
+    try {
+      const response = await axios.post(
+        "/api/api.php?action=fetchAuth",
+        JSON.stringify({ user_name, password }),
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-  //     let response;
+      const { accessToken, username } = response.data;
+      if (!accessToken) throw new Error("No accessToken in response");
 
-  //     if (isAxios) {
-  //       // Use axios for the login endpoint
-  //       response = await axios.post(`${apiBaseUrl}/api/auth/login`, data);
-  //     } else {
-  //       // Use jquery for the login endpoint
-  //       response = await axios.post(`${apiBaseUrl}/api/api.php?action=fetchAuth`, data);
-  //     }
+      setSession(accessToken);
+      dispatch({ type: "LOGIN", payload: { user: { username, accessToken } } });
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
+  }, []);
 
-  //     const { accessToken, user } = response.data;
+  const register = useCallback(async (email, password, firstName, lastName) => {
+    const response = await axios.post(`${apiBaseUrl}/api/auth/register`, { email, password, firstName, lastName });
+    const { accessToken, user } = response.data;
 
-  //     setSession(accessToken);
+    setSession(accessToken);
+    dispatch({ type: "REGISTER", payload: { user: { ...user, accessToken } } });
+  }, [apiBaseUrl]);
 
-  //     dispatch({
-  //       type: "LOGIN",
-  //       payload: {
-  //         user: {
-  //           ...user,
-  //           accessToken,
-  //         },
-  //       },
-  //     });
-  //   },
-  //   [apiBaseUrl, isAxios]
-  // );
+  const logout = useCallback(() => {
+    setSession(null);
+    dispatch({ type: "LOGOUT" });
+    navigate("/auth/jwt/login?returnTo=%2Fdashboard");
+  }, [navigate]);
 
-  const register = useCallback(
-    async ( email, password, firstName, lastName ) =>
-    {
-      const data = {
-        email,
-        password,
-        firstName,
-        lastName,
-      };
+  const status = state.loading ? "loading" : state.user ? "authenticated" : "unauthenticated";
 
-      // Use axios for the register endpoint
-      const response = await axios.post( `${ apiBaseUrl }/api/auth/register`, data );
+  const memoizedValue = useMemo(() => ({
+    user: state.user,
+    method: "axios",
+    loading: status === "loading",
+    authenticated: status === "authenticated",
+    unauthenticated: status === "unauthenticated",
+    login,
+    register,
+    logout,
+  }), [login, logout, register, state.user, status]);
 
-      const { accessToken, user } = response.data;
-
-      sessionStorage.setItem( STORAGE_KEY, accessToken );
-
-      dispatch( {
-        type: "REGISTER",
-        payload: {
-          user: {
-            ...user,
-            accessToken,
-          },
-        },
-      } );
-    },
-    [ apiBaseUrl ]
-  );
-
-  const logout = useCallback( async () =>
-  {
-    setSession( null );
-    dispatch( {
-      type: "LOGOUT",
-    } );
-    navigate( "/auth/jwt/login?returnTo=%2Fdashboard" );
-  }, [ navigate ] );
-
-  // ----------------------------------------------------------------------
-
-  const checkAuthenticated = state.user ? "authenticated" : "unauthenticated";
-
-  const status = state.loading ? "loading" : checkAuthenticated;
-
-  const memoizedValue = useMemo(
-    () => ( {
-      user: state.user,
-      method: isAxios ? "axios" : "jquery", // Reflect the API client in the context value
-      loading: status === "loading",
-      authenticated: status === "authenticated",
-      unauthenticated: status === "unauthenticated",
-      //
-      login,
-      register,
-      logout,
-    } ),
-    [ login, logout, register, state.user, status, isAxios ]
-  );
-
-  return (
-    <AuthContext.Provider value={ memoizedValue }>
-      { children }
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>;
 }
 
-AuthProvider.propTypes = {
-  children: PropTypes.node,
-};
+AuthProvider.propTypes = { children: PropTypes.node };

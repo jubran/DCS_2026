@@ -13,6 +13,10 @@ switch ($action) {
         AuthController::fetchAuth();
         break;
 
+    case 'refreshToken':
+        require_once __DIR__ . '/controllers/refresh-token.php';
+        break;
+
     case 'register':
         require_once __DIR__ . '/controllers/AuthController.php';
         AuthController::register();

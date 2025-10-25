@@ -40,8 +40,10 @@ export default function OperationDialogForm({ data, open, onClose }) {
       // ✅ هنا نرسل البيانات إلى صفحة UnitManagerForm
       navigate("units", {
         state: {
-          selectedOperation,
+          selectedOperation: selectedOperation.name,
           location: data.location,
+          dayDate : '2024-06-15', // مثال على تاريخ
+          dayTime : '14:30' // مثال على وقت
         },
       });
 
@@ -88,7 +90,7 @@ export default function OperationDialogForm({ data, open, onClose }) {
         >
           {selectedOperation ? (
             <Typography variant="body1" sx={{color:"", fontWeight:""}}>
-               العملية المختارة : {selectedOperation}
+               العملية المختارة : {selectedOperation.label}
             </Typography>
           ) : (
           <Typography variant="body1" color="error">

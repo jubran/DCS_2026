@@ -1,6 +1,6 @@
 /* eslint-disable perfectionist/sort-imports */
 import React from "react";
-import "src/global.css";
+import "src/theme/global.css";
 
 import "src/locales/i18n";
 // ----------------------------------------------------------------------

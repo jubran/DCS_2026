@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { TextField, FormControl, InputLabel, Select, MenuItem} from '@mui/material';
-import DateTimeField from './DateTimeField';
+import DateTimeField from '../../delete2/forms2/DateTimeField';
 import { FormControlLabel, Checkbox } from '@mui/material';
-import { FormContainer } from '../FormContainer';
-import { STATUS_MENU, RATCHING_MENU } from '../global';
+import { FormContainer } from './FormContainer';
+import { STATUS_MENU, RATCHING_MENU } from '.';
 
 const TransformerForm = () => {
   const [formData, setFormData] = useState({

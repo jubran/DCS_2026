@@ -10,86 +10,109 @@ import {
   Divider
 } from '@mui/material';
 
-// مكون صف البيانات (DataRow)
+// صف بيانات بسيط
 const DataRow = ({ label, value }) => (
-<Grid
-  container
-  spacing={1}
-  alignItems="center"
-  width="100%"
-  py={0.5}
->
-  {/* العمود الأول: العنوان */}
-  <Grid item xs={2}>
-    <Typography
-       fontSize="0.90rem"
-      mb={0}     
-      sx={{ 
-        textTransform: "uppercase",
-        color:"text.secondary",
-        textShadow: "0 1px 2px rgba(0,0,0,0.1)"
-      }}
-    >
-      {label}
-    </Typography>
-  </Grid>
+  <Grid container spacing={1} alignItems="center" width="100%" py={0.5}>
+    <Grid item xs={2}>
+      <Typography
+        fontSize="0.90rem"
+        mb={0}
+        sx={{
+          textTransform: "uppercase",
+          color: "text.secondary",
+          textShadow: "0 1px 2px rgba(0,0,0,0.1)"
+        }}
+      >
+        {label}
+      </Typography>
+    </Grid>
 
-  {/* العمود الثاني: القيمة */}
-  <Grid
-    item
-    xs={3}
-    display="flex"
-    justifyContent="flex-start"
-  >
-    <Typography
-      fontWeight={800}
-      fontSize="0.9rem"
-      sx={{ 
-        textTransform: "uppercase",
-        color: "success.dark",
-        textShadow: "0 1px 2px rgba(0,0,0,0.1)"
-      }}
-    >
-      {value}
-    </Typography>
+    <Grid item xs={3} display="flex" justifyContent="flex-start">
+      <Typography
+        fontWeight={800}
+        fontSize="0.9rem"
+        sx={{
+          textTransform: "uppercase",
+          color: "success.dark",
+          textShadow: "0 1px 2px rgba(0,0,0,0.1)"
+        }}
+      >
+        {value}
+      </Typography>
+    </Grid>
   </Grid>
-</Grid>
-)
+);
 
-// مكون بطاقة اختيار العملية
-const OperationSelectionCard = ({ onActionSelect , data }) => {
+// بطاقة اختيار العملية
+const OperationSelectionCard = ({ onActionSelect, data }) => {
   const theme = useTheme();
-  console.log("Data in OperationSelectionCard:", data);
-  // State لتخزين العملية المختارة
   const [selectedAction, setSelectedAction] = useState(null);
 
-  // دالة لمعالجة التغيير في الـ Checkbox
+  // تحديد الأزرار حسب بداية الموقع
+  const getActionsForLocation = () => {
+    if (data.location?.startsWith('TANK')) {
+      return [
+        { name: 'tank', label: `إجراء عملية تغيير على ${data.location} ` },
+      
+      ];
+    } else if (data.location?.startsWith('FUS')) {
+      return [
+        { name: 'start', label: 'تشغيل' },
+        { name: 'trip', label: 'TRIP' },
+      ];
+    }  else if ( data.location?.match( /SP#(\d+)/ )){
+      return [
+        { name: 'start', label: 'تشغيل' },
+        { name: 'trip', label: 'إيقاف أو  TRIP أو تحويل' },
+      ];
+    } else {
+      return [
+        { name: 'start', label: 'تشغيل' },
+        { name: 'stop', label: 'إيقاف' },
+        { name: 'change', label: 'تحويل' },
+        { name: 'trip', label: 'TRIP' },
+      ];
+    }
+  };
+
+  const actions = getActionsForLocation();
+
+  // دالة التغيير
   const handleActionChange = (action) => {
-    const newAction = selectedAction === action ? null : action;
+    const newAction = selectedAction?.name === action.name ? null : action;
     setSelectedAction(newAction);
-    // تمرير القيمة الجديدة إلى المكون الأب
     onActionSelect(newAction);
   };
 
-  // دالة مساعدة لتنسيق الأزرار
+  // تنسيق الأزرار حسب نوع العملية
   const getButtonStyles = (action) => {
     let colorKey;
     let mainColor;
 
-    // تعيين الألوان المطلوبة
-    if (action === 'تشغيل') {
-      colorKey = theme.palette.success.main;
-      mainColor = 'white';
-    } else if (action === 'إيقاف') {
-      colorKey = theme.palette.warning.main;
-      mainColor = 'black';
-    } else if (action === 'تحويل') {
-      colorKey = theme.palette.error.main;
-      mainColor = 'white';
+    switch (action.name) {
+      case 'start':
+        colorKey = theme.palette.success.main;
+        mainColor = 'white';
+        break;
+      case 'stop':
+        colorKey = theme.palette.warning.main;
+        mainColor = 'black';
+        break;
+      case 'change':
+        colorKey = theme.palette.info.main;
+        mainColor = 'white';
+        break;
+      case 'trip':
+        colorKey = theme.palette.error.dark;
+        mainColor = 'white';
+        break;
+      default:
+        colorKey = theme.palette.primary.main;
+        mainColor = 'white';
     }
 
-    const isChecked = selectedAction === action;
-    
+    const isChecked = selectedAction?.name === action.name;
+
     return {
       flex: 1,
       m: 0,
@@ -104,8 +127,6 @@ const OperationSelectionCard = ({ onActionSelect , data }) => {
       cursor: 'pointer',
       position: 'relative',
       overflow: 'hidden',
-      
-      // إخفاء Checkbox الافتراضي
       '& .MuiCheckbox-root': {
         position: 'absolute',
         opacity: 0,
@@ -116,7 +137,6 @@ const OperationSelectionCard = ({ onActionSelect , data }) => {
         margin: 0,
         cursor: 'pointer',
       },
-      
       '& .MuiFormControlLabel-label': {
         fontWeight: isChecked ? 'bold' : 'normal',
         fontSize: '0.95rem',
@@ -125,13 +145,11 @@ const OperationSelectionCard = ({ onActionSelect , data }) => {
         zIndex: 1,
         position: 'relative'
       },
-      
       '&:hover': {
         bgcolor: isChecked ? colorKey : theme.palette.action.hover,
         transform: 'translateY(-1px)',
         boxShadow: 1
       },
-      
       '&:active': {
         transform: 'translateY(0)',
       }
@@ -139,73 +157,68 @@ const OperationSelectionCard = ({ onActionSelect , data }) => {
   };
 
   return (
-    <Card sx={{ 
-      p: 3, 
-      borderRadius: 2, 
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      border: `1px solid ${theme.palette.divider}`
-    }}>
- 
-       <Box>
-    {/* العنوان الرئيسي */}
-    <Typography
-      fontSize="0.95rem"
-      mb={0.5}     
-      sx={{ 
-        textTransform: "uppercase",
-        color:"text.secondary",
-        textShadow: "0 1px 2px rgba(0,0,0,0.1)"
+    <Card
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        border: `1px solid ${theme.palette.divider}`,
       }}
     >
-      تنفيذ العملية على
-    </Typography>
+      <Box>
+        <Typography
+          fontSize="0.95rem"
+          mb={0.5}
+          sx={{
+            textTransform: 'uppercase',
+            color: 'text.secondary',
+            textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+          }}
+        >
+          تنفيذ العملية على
+        </Typography>
 
-    <Typography
-       fontWeight={800}
-      fontSize="1.5rem"
-      sx={{ 
-        textTransform: "uppercase",
-        color: "success.dark",
-        textShadow: "0 1px 2px rgba(0,0,0,0.1)"
-      }}
-    >
-      {data.location}
-    </Typography>
-<Divider sx={{ my: 2 }} />
-    {/* تفاصيل العملية */}
-    <Box
-      mb={3}
-      display="flex"
-      flexDirection="column"
-      gap={0.5}
-    >
-      <DataRow label="الوضع الحالي" value={data.status1} />
-      <DataRow label="الإسم" value="جبران حسن اليحيوي" />
-    </Box>
+        <Typography
+          fontWeight={800}
+          fontSize="1.5rem"
+          sx={{
+            textTransform: 'uppercase',
+            color: 'success.dark',
+            textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+          }}
+        >
+          {data.location}
+        </Typography>
 
-    {/* اختيار نوع العملية */}
-    <Typography
-      variant="subtitle2"
-      color="text.secondary"
-      mb={2}
-      fontWeight={500}
-    >
-      اختر نوع العملية:
-    </Typography>
-  </Box>
-      
+        <Divider sx={{ my: 2 }} />
+
+        <Box mb={3} display="flex" flexDirection="column" gap={0.5}>
+          <DataRow label="الوضع الحالي" value={data.status1} />
+          <DataRow label="الإسم" value="جبران حسن اليحيوي" />
+        </Box>
+
+        <Typography
+          variant="subtitle2"
+          color="text.secondary"
+          mb={2}
+          fontWeight={500}
+        >
+          اختر نوع العملية:
+        </Typography>
+      </Box>
+
       <Box display="flex" gap={1.5} mb={3}>
-        {['تشغيل', 'إيقاف', 'تحويل'].map((action) => (
+        {actions.map((action) => (
           <FormControlLabel
-            key={action}
+            key={action.name}
             control={
-              <Checkbox 
-                checked={selectedAction === action}
+              <Checkbox
+                checked={selectedAction?.name === action.name}
                 onChange={() => handleActionChange(action)}
-                name={action}
+                name={action.name}
               />
             }
-            label={action}
+            label={action.label}
             sx={getButtonStyles(action)}
           />
         ))}
